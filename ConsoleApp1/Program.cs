@@ -9,8 +9,8 @@ public class SynchronousSocketClient
 
     private static String WIN_RESULT = "win";
     private static String LOSE_RESULT = "lose";
-    private static String MY_SIGN = "O";
-    private static String OPONENT_SIGN = "X";
+    private static String MY_SIGN = "X";
+    private static String OPONENT_SIGN = "O";
     private static String[,] border = null;
     private static bool WIN_GAME = false;
     private static int emptyField = 0;
@@ -70,8 +70,8 @@ public class SynchronousSocketClient
                         jsons = JObject.Parse(data);
                         x = jsons["x"].Value<int>();
                         y = jsons["y"].Value<int>();
-                      
-                        setMoveToCopyServerBoard(x, y,  OPONENT_SIGN);
+
+                        setMoveToCopyServerBoard(x, y, OPONENT_SIGN);
                         Console.WriteLine("Recived: " + data);
                     }
                     else
@@ -90,7 +90,7 @@ public class SynchronousSocketClient
                         Console.ReadLine();
                     }
 
-                    
+
                 }
                 // Release the socket.  
                 sender.Shutdown(SocketShutdown.Both);
@@ -119,9 +119,9 @@ public class SynchronousSocketClient
         }
     }
 
-    private static void setMoveToCopyServerBoard(int x, int y,String sign)
+    private static void setMoveToCopyServerBoard(int x, int y, String sign)
     {
-                border[x,y] = sign;   
+        border[x, y] = sign;
     }
 
     private static byte[] sendPosition(byte[] msg)
@@ -133,10 +133,10 @@ public class SynchronousSocketClient
 
     private static byte[] checkFieldAndSetNewField(string[,] border)
     {
-     
+
         byte[] msg = null;
         Console.WriteLine("SIZE OF BORDER " + border.GetLength(0));
-        int m = minMax(border, MY_SIGN); 
+        //int m = minMax(border, MY_SIGN); 
         Position p = botMove(border);
         msg = Encoding.ASCII.GetBytes(@"{x:" + p.x + ",y:" + p.y + "}<EOF>");
         /* if (border[0, 0] == null) 
@@ -156,16 +156,16 @@ public class SynchronousSocketClient
         Position position = new Position();
         int move, m, mmx;
         mmx = -10;
-        for (int i = 0; i < border.GetLength(0) - 1; i++)
+        for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
-            for (int j = 0; j < border.GetLength(1) - 1; j++)
+            for (int j = 0; j <= border.GetLength(1) - 1; j++)
             {
-                if (border[i, j].Equals(null))
+                if (border[i, j] == null)
                 {
                     border[i, j] = MY_SIGN;
                     m = minMax(border, MY_SIGN);
                     border[i, j] = null;
-                    if(m > mmx)
+                    if (m > mmx)
                     {
                         mmx = m;
                         position.x = i;
@@ -179,12 +179,13 @@ public class SynchronousSocketClient
     }
     private static int minMax(string[,] border, string mY_SIGN)
     {
-        int m=0, mmx = 0;
+        int m, mmx;
 
         if (win_game())
         {
             m = 1;
-        }else if (draw())
+        }
+        else if (draw())
         {
             m = 0;
         }
@@ -195,10 +196,12 @@ public class SynchronousSocketClient
         mY_SIGN = (mY_SIGN == "X") ? "O" : "X";
         mmx = (mY_SIGN == "O") ? 10 : -10;
 
-        for(int i = 0; i < border.GetLength(0) - 1; i++)
+        for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
-            for(int j=0;j<border.GetLength(1) - 1; j++)
+            Console.WriteLine("This is my i: {0}", i);
+            for (int j = 0; j <= border.GetLength(1) - 1; j++)
             {
+                Console.WriteLine("This is my j: {0}", j);
                 if (border[i, j] == null)
                 {
                     border[i, j] = mY_SIGN;
@@ -221,16 +224,16 @@ public class SynchronousSocketClient
             {
                 draw = true;
             }
-          
+
         }
         return draw;
     }
     private static int checkEmptyField(string[,] border)
     {
-        
-        for (int i = 0; i < border.GetLength(0) -1; i++)
+
+        for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
-            for (int j = 0; j < border.GetLength(0) -1; j++)
+            for (int j = 0; j <= border.GetLength(0) - 1; j++)
             {
                 if (border[i, j] == null)
                 {
@@ -242,35 +245,110 @@ public class SynchronousSocketClient
     }
     private static bool win_game()
     {
-        
-        for (int i = 0; i < border.GetLength(0) - 1; i++)
+        string lastSign = border[0, 0];
+        int counter = 0;
+        int i = 0, j = 0;
+        //dla wierszy
+        for (i = 0; i <= border.GetLength(0) - 1; i++)
         {
-            for(int j=0;j < border.GetLength(1) -1; j++)
+            for (j = 0; j <= border.GetLength(1) - 1; j++)
             {
-                if(border[i,j] == MY_SIGN)
+                if (lastSign.Equals(border[i, j]))
                 {
-                    WIN_GAME = true;
+                    counter++;
+                    if (counter == border.GetLength(1) - 1)
+                    {
+                        WIN_GAME = true;
+                    }
+                }
+                else
+                {
+                    counter = 0;
+                    if(border[i,j] != null)
+                        lastSign = border[i, j];
+                }
+            }
+        }
+        //dla column
+        i = 0;
+        j = 0;
+        lastSign = border[0, 0];
+        counter = 0;
+        for (j = 0; j <= border.GetLength(1) - 1; j++)
+        {
+            for (i = 0; i <= border.GetLength(0) - 1; i++)
+            {
+                if (lastSign.Equals(border[i, j]))
+                {
+                    counter++;
+                    if (counter == border.GetLength(1) - 1)
+                    {
+                        WIN_GAME = true;
+                    }
+                }
+                else
+                {
+                    counter = 0;
+                    if (border[i, j] != null)
+                        lastSign = border[i, j];
                 }
             }
         }
 
-        for(int i=0;i<border.GetLength(0) -1; i++)
+        //diagonala
+        counter = 0;
+        i = 0;
+        j = 0;
+        lastSign = border[0, 0];
+        while (counter <= border.GetLength(0) - 1 && i <= border.GetLength(0) -1 && j <= border.GetLength(0) -1)
         {
-            if(border[0,i] == MY_SIGN)
+            if (lastSign.Equals(border[i, j]))
             {
-                WIN_GAME = true;
+                counter++;
+                lastSign = border[i, j];
             }
+            else
+            {
+                counter = 0;
+                if (border[i, j] != null)
+                    lastSign = border[i, j];
+            }
+            i++;
+            j++;
+        }
+        if(counter.Equals(border.GetLength(0) -1))
+        {
+            WIN_GAME = true;
+        }
+        //odwrotna diagonala
+        counter = 0;
+        i = border.GetLength(0) - 1;
+        j = border.GetLength(0) - 1;
+        lastSign = border[0, 0];
+        while (counter <= border.GetLength(0) && i != 0 && j != 0)
+        {
+            if (lastSign.Equals(border[i, j]))
+            {
+                counter++;
+                if (border[i, j] != null)
+                    lastSign = border[i, j];
+            }
+            else
+            {
+                counter = 0;
+                if (border[i, j] != null)
+                    lastSign = border[i, j];
+            }
+            i--;
+            j--;
+        }
+        if (counter.Equals(border.GetLength(0) - 1))
+        {
+            WIN_GAME = true;
         }
 
-        for (int i = 0; i < border.GetLength(1) - 1; i++)
-        {
-            if (border[i, 0] == MY_SIGN)
-            {
-                WIN_GAME = true;
-            }
-        }
-
-            return WIN_GAME;
+        //do popraw
+        return WIN_GAME;
     }
 
     public static int Main(String[] args)
