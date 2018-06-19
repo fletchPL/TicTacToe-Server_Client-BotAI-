@@ -9,11 +9,15 @@ public class SynchronousSocketClient
 
     private static String WIN_RESULT = "win";
     private static String LOSE_RESULT = "lose";
-    private static String MY_SIGN = "X";
-    private static String OPONENT_SIGN = "O";
+    private static String MY_SIGN = "O";
+    private static String OPONENT_SIGN = "X";
     private static String[,] border = null;
+    private static String[,] borderCOPY = new string[3, 3] { {"N","N","N" },
+                                                             {"N","N","N" },
+                                                             {"N","N","N" }};
     private static bool WIN_GAME = false;
     private static int emptyField = 0;
+
     public static void StartClient()
     {
         // Data buffer for incoming data.  
@@ -70,7 +74,11 @@ public class SynchronousSocketClient
                         jsons = JObject.Parse(data);
                         x = jsons["x"].Value<int>();
                         y = jsons["y"].Value<int>();
-
+                        borderCOPY[x, y] = OPONENT_SIGN;
+                        foreach(String s in borderCOPY)
+                        {
+                            Console.WriteLine(s);
+                        }
                         setMoveToCopyServerBoard(x, y, OPONENT_SIGN);
                         Console.WriteLine("Recived: " + data);
                     }
@@ -81,6 +89,7 @@ public class SynchronousSocketClient
                         jsons = JObject.Parse(data);
                         x = jsons["x"].Value<int>();
                         y = jsons["y"].Value<int>();
+                       
                         setMoveToCopyServerBoard(x, y, OPONENT_SIGN);
                         Console.WriteLine("Recived: " + data);
 
@@ -121,7 +130,7 @@ public class SynchronousSocketClient
 
     private static void setMoveToCopyServerBoard(int x, int y, String sign)
     {
-        border[x, y] = sign;
+        borderCOPY[x, y] = sign;
     }
 
     private static byte[] sendPosition(byte[] msg)
@@ -139,32 +148,38 @@ public class SynchronousSocketClient
         //int m = minMax(border, MY_SIGN); 
         Position p = botMove(border);
         msg = Encoding.ASCII.GetBytes(@"{x:" + p.x + ",y:" + p.y + "}<EOF>");
-        /* if (border[0, 0] == null) 
-         {
-             msg = Encoding.ASCII.GetBytes(@"{x:"+0+",y:"+0+"}<EOF>");
-
-         }
-         else
-         {
-             msg = Encoding.ASCII.GetBytes(@"{x:" + 2 + ",y:" + 2 + "}<EOF>");
-         }
-         Console.WriteLine("Send: " + Encoding.ASCII.GetString(msg));*/
+        border[p.x, p.y] = MY_SIGN;
+ 
         return msg;
     }
-    private static Position botMove(string[,] border) // to ma wysyłać ruch
+    private static void changeNULLtoSingleLetter()
+    {
+       for(int i=0;i<border.GetLength(0) -1; i++)
+        {
+            for (int j = 0; j < border.GetLength(0) - 1; j++)
+            {
+                if(border[i,j] == null)
+                {
+                    border[i, j] = "N";
+                }
+            }
+        }
+    }
+    private static Position botMove(string[,] border) 
     {
         Position position = new Position();
         int move, m, mmx;
         mmx = -10;
+        changeNULLtoSingleLetter();
         for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
             for (int j = 0; j <= border.GetLength(1) - 1; j++)
             {
-                if (border[i, j] == null)
+                if (border[i, j] == "N")
                 {
                     border[i, j] = MY_SIGN;
                     m = minMax(border, MY_SIGN);
-                    border[i, j] = null;
+                    border[i, j] = "N";
                     if (m > mmx)
                     {
                         mmx = m;
@@ -198,17 +213,18 @@ public class SynchronousSocketClient
 
         for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
-            Console.WriteLine("This is my i: {0}", i);
+            //Console.WriteLine("This is my i: {0}", i);
             for (int j = 0; j <= border.GetLength(1) - 1; j++)
             {
-                Console.WriteLine("This is my j: {0}", j);
-                if (border[i, j] == null)
+                //Console.WriteLine("This is my j: {0}", j);
+                if (border[i, j] == "N")
                 {
                     border[i, j] = mY_SIGN;
                     m = minMax(border, mY_SIGN);
-                    border[i, j] = null;
+                    border[i, j] = "N";
                     if (((mY_SIGN == "O") && (m < mmx)) || ((mY_SIGN == "X") && (m > mmx))) mmx = m;
                 }
+                return mmx;
             }
         }
 
