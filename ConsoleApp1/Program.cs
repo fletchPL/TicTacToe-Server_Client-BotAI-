@@ -75,11 +75,9 @@ public class SynchronousSocketClient
                         x = jsons["x"].Value<int>();
                         y = jsons["y"].Value<int>();
                         borderCOPY[x, y] = OPONENT_SIGN;
-                        foreach(String s in borderCOPY)
-                        {
-                            Console.WriteLine(s);
-                        }
+                      
                         setMoveToCopyServerBoard(x, y, OPONENT_SIGN);
+                        border = borderCOPY;
                         Console.WriteLine("Recived: " + data);
                     }
                     else
@@ -91,6 +89,7 @@ public class SynchronousSocketClient
                         y = jsons["y"].Value<int>();
                        
                         setMoveToCopyServerBoard(x, y, OPONENT_SIGN);
+                        border = borderCOPY;
                         Console.WriteLine("Recived: " + data);
 
                         msg = sendPosition(msg);
@@ -210,7 +209,7 @@ public class SynchronousSocketClient
         }
         mY_SIGN = (mY_SIGN == "X") ? "O" : "X";
         mmx = (mY_SIGN == "O") ? 10 : -10;
-
+        
         for (int i = 0; i <= border.GetLength(0) - 1; i++)
         {
             //Console.WriteLine("This is my i: {0}", i);
